@@ -1,0 +1,10 @@
+{
+  "income": 30000,
+  "fixed_costs": [
+    {"name": "rent", "amount": 9000},
+    {"name": "education", "amount": 3000}
+  ],
+  "priorities": ["savings", "food", "transport", "entertainment"],
+  "savings_goal": {"amount": 5000, "months": 3},
+  "change_request": {"category": "food", "action": "decrease", "amount": 1000}
+}
