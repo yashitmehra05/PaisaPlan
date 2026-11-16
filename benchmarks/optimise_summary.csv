@@ -1,0 +1,6 @@
+n_categories,solvable_problems,improved_pct,mean_improvement_pct,median_search_time_ms
+4,17,64.7,4.16,1.77
+6,19,73.7,4.73,7.37
+8,15,93.3,10.8,22.24
+10,17,100.0,9.08,61.4
+12,16,93.8,5.0,159.98

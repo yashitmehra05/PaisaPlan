@@ -1,0 +1,16 @@
+n_categories,method,problems,finished_pct,median_nodes,max_nodes_finished,median_time_ms
+4,backtracking,20,100.0,60,1509,0.008
+4,forward,20,100.0,4,13,0.025
+4,mrv,20,100.0,4,29,0.026
+6,backtracking,20,100.0,450,18224,0.044
+6,forward,20,100.0,6,20,0.048
+6,mrv,20,100.0,6,13,0.048
+8,backtracking,20,100.0,1401,141030,0.127
+8,forward,20,100.0,8,1468,0.085
+8,mrv,20,100.0,8,363,0.093
+10,backtracking,20,70.0,16619,118409,1.395
+10,forward,20,100.0,14,7867,0.17
+10,mrv,20,100.0,10,775,0.17
+12,backtracking,20,85.0,16916,95061,1.577
+12,forward,20,100.0,12,40,0.236
+12,mrv,20,100.0,12,33,0.257
