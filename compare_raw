@@ -1,0 +1,7 @@
+from llm.ollama_client import make_chat
+from llm.prompts import extract_messages
+
+message = "I want to save 5000 a month"
+for model, prompt in (("llama3.2:3b", "simple"), ("paisaplan", "trained")):
+    print("\n=== " + model + " ===")
+    print(make_chat(model)(extract_messages(message, prompt)))

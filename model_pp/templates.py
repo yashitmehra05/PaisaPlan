@@ -30,7 +30,7 @@ def budget_text(problem, result, payload):
     parts.append(f"You save {rs(alloc['savings'])} per month [CERTAIN].")
     if payload.get("months_to_goal"):
         parts.append(f"That reaches your {rs(payload['savings_goal_total'])} goal in "
-                     f"{payload['months_to_goal']} months [ESTIMATE: assumes your income and spending stay the same].")
+                     f"{payload['months_to_goal']} {'month' if payload['months_to_goal'] == 1 else 'months'} [ESTIMATE: assumes your income and spending stay the same].")
     else:
         parts.append("This assumes your income and spending stay about the same [ESTIMATE: no income change].")
     if result["unallocated"]:

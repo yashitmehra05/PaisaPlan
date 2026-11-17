@@ -64,19 +64,15 @@ def _fewshot_messages(text):
 
 def extract_messages(text, variant="trained"):
     """Chat messages for extraction. variant: trained | simple | fewshot.
-
-    NOTE: even the "trained" variant now uses the few-shot template. The model still sees
-    EXTRACT_SYS (as the first line of FEWSHOT_EXTRACT_SYS) — word for word — but the
-    examples teach it the exact JSON shape (savings_goal as dict, fixed_costs as list of dicts,
-    etc.) so we stop getting malformed output. The trained system prompt is *not* altered.
     """
     if variant == "simple":
         return [{"role": "system", "content": SIMPLE_EXTRACT_SYS},
                 {"role": "user", "content": text}]
     if variant == "fewshot":
         return _fewshot_messages(text)
-    # DEFAULT ("trained") — use few-shot template for reliable schema, EXTRACT_SYS is preserved inside it.
-    return _fewshot_messages(text)
+    # trained: EXACTLY the fine-tuning prompt (no examples)
+    return [{"role": "system", "content": EXTRACT_SYS},
+            {"role": "user", "content": text}]
 
 
 def explain_messages(payload, variant="trained"):

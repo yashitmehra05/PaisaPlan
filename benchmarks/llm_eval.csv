@@ -1,4 +1,3 @@
 name,model,prompt,valid_json,schema_ok,income_ok,fixed_ok,priorities_ok,savings_ok,change_ok,exact,exact_budget,exact_what_if,exact_missing,exact_tricky,invented_income_pct,no_invented_numbers,has_tags,safe,coverage,extract_n,explain_n
-base_simple,llama3.2:3b,simple,100.0,0.0,70.7,34.5,63.8,22.4,37.9,0.0,0.0,0.0,0.0,0.0,37.5,52.8,0.0,0.0,89.3,58,36
-base_fewshot,llama3.2:3b,fewshot,100.0,100.0,98.3,89.7,84.5,100.0,94.8,72.4,83.3,37.5,87.5,100.0,0.0,47.2,13.9,11.1,96.3,58,36
-finetuned,paisaplan,trained,100.0,98.3,100.0,98.3,93.1,100.0,94.8,87.9,90.0,87.5,75.0,100.0,0.0,97.2,100.0,97.2,99.4,58,36
+base_simple,llama3.2:3b,simple,100.0,12.1,70.7,36.2,81.0,48.3,36.2,5.2,0.0,0.0,37.5,0.0,37.5,,,,,58,0
+finetuned,paisaplan,trained,100.0,98.3,100.0,98.3,93.1,100.0,94.8,87.9,90.0,87.5,75.0,100.0,0.0,,,,,58,0

@@ -73,9 +73,24 @@ def check_ollama_health(
 @st.cache_resource
 def get_pipeline(model_name: str) -> Pipeline:
 
-    return Pipeline(make_chat(model_name))
+    is_ft = model_name == "paisaplan"
+    return Pipeline(
+        make_chat(model_name),
+        extract_chat=make_chat(model_name, force_json=True),
+        extract_variant="trained" if is_ft else "fewshot",
+    )
 
-
+def show_extraction(reply):
+    ex = reply.get("extraction")
+    if not ex:
+        return
+    with st.expander("🧠 What the model understood (before the solver)", expanded=False):
+        st.caption(f"Parsed OK: {ex['ok']} · attempts: {ex['attempts']}")
+        if ex["ok"]:
+            st.json(ex["data"])
+        else:
+            st.error("❌ Model output rejected by the schema check, so nothing reached the solver: " + "; ".join(ex["problems"]))
+        st.code(ex["raw"] or "(empty)", language="json")
 # ---------------------------------------------------------
 # Session state initialization
 # ---------------------------------------------------------
@@ -230,7 +245,7 @@ with tab_chat:
             "'What if I cut food by 2,000?'"
         )
 
-    # Display chat history
+        # Display chat history
     for idx, entry in enumerate(st.session_state.chat_history):
 
         with st.chat_message(entry["role"]):
@@ -240,14 +255,16 @@ with tab_chat:
                 st.markdown(entry["content"])
 
             else:
-                # Display which model answered this specific prompt
+                reply_data = entry.get("reply") or {}
                 model_used = entry.get("model_name", "Unknown Model")
-                st.caption(f"🤖 Answered by: **{model_used}**")
-                
+                _src = (reply_data.get("explanation") or {}).get("source") or "n/a"
+                st.caption(f"🤖 Answered by: **{model_used}** · explanation: {_src}")
+
                 render_reply_card(
-                    entry["reply"],
+                    reply_data,
                     previous_result=entry.get("previous_result"),
                 )
+                show_extraction(reply_data)
 
     # Chat input
     prompt = st.chat_input(
@@ -277,7 +294,6 @@ with tab_chat:
 
         with st.chat_message("assistant"):
 
-            # Display the model name while it's loading
             st.caption(f"🤖 Generating response using: **{st.session_state.selected_model}**")
 
             with st.spinner(
@@ -324,6 +340,7 @@ with tab_chat:
                     reply,
                     previous_result=prev_res,
                 )
+                show_extraction(reply)
 
                 # Save assistant response (WITH MODEL NAME)
                 st.session_state.chat_history.append(
@@ -334,8 +351,6 @@ with tab_chat:
                         "model_name": st.session_state.selected_model,
                     }
                 )
-
-
 # =========================================================
 # TAB 2: STRUCTURED FORM PLANNER
 # =========================================================

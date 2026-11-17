@@ -39,7 +39,6 @@ class Pipeline:
             except Exception as e:  # Ollama down, timeout, ...
                 return {"ok": False, "data": None, "raw": "",
                         "problems": [f"model unavailable: {e}"], "attempts": attempt}
-            print("=== RAW EXTRACT ===", repr(raw))   # debug — remove later
             obj, error = parse_json_reply(raw)
             problems = [error] if error else check_extraction(obj)
             if not problems:
