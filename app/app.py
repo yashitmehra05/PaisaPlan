@@ -1,22 +1,31 @@
+import os
 import sys
 import urllib.request
-from pathlib import Path
+
+# ---------------------------------------------------------
+# Project path setup (MUST be before ANY other imports)
+# ---------------------------------------------------------
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
 
 import streamlit as st
 
 # ---------------------------------------------------------
-# Project path setup
+# Page configuration (MUST be the first Streamlit command)
 # ---------------------------------------------------------
-ROOT_DIR = Path(__file__).resolve().parent.parent
+st.set_page_config(
+    page_title="PaisaPlan — AI Constraint Budget Planner",
+    page_icon="💸",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-if str(ROOT_DIR) not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR))
-
 # ---------------------------------------------------------
-# Project imports
+# Project imports (UPDATED TO model_pp)
 # ---------------------------------------------------------
-from llm.ollama_client import make_chat
-from llm.pipeline import Pipeline
+from model_pp.ollama_client import make_chat
+from model_pp.pipeline import Pipeline
 
 try:
     from app.styles import CUSTOM_CSS
@@ -34,15 +43,8 @@ except ModuleNotFoundError:
 
 
 # ---------------------------------------------------------
-# Page configuration
+# Apply custom CSS
 # ---------------------------------------------------------
-st.set_page_config(
-    page_title="PaisaPlan — AI Constraint Budget Planner",
-    page_icon="💸",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 
