@@ -4,14 +4,14 @@ import os
 
 import pytest
 
-from llm import payloads, prompts, templates
-from llm.evaluate import compare, evaluate, load_test, markdown_table
-from llm.ollama_client import make_chat
-from llm.pipeline import Pipeline
-from llm.test_cases import explain_cases
-from llm.validator import (check_explanation, check_extraction, has_tags, invented_numbers,
+from model_pp import payloads, prompts, templates
+from model_pp.evaluate import compare, evaluate, load_test, markdown_table
+from model_pp.ollama_client import make_chat
+from model_pp.pipeline import Pipeline
+from model_pp.test_cases import explain_cases
+from model_pp.validator import (check_explanation, check_extraction, has_tags, invented_numbers,
                            numbers_in, parse_json_reply, split_tagged)
-from llm.whatif import apply_what_if
+from model_pp.whatif import apply_what_if
 from solver import normalise, solve
 
 HERE = os.path.dirname(os.path.abspath(__file__))
