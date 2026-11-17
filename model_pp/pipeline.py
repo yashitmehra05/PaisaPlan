@@ -1,27 +1,5 @@
-"""The whole chat pipeline: message -> JSON -> solver -> explanation, with safety checks.
+"""The whole chat pipeline: message -> JSON -> solver -> explanation, with safety checks."""
 
-    from llm.pipeline import Pipeline
-    from llm.ollama_client import make_chat
-
-    pipe = Pipeline(make_chat("paisaplan"))
-    reply = pipe.handle("30k salary, rent 9000, save 5k", problem=None)
-    ...
-    reply = pipe.handle("what if I cut food by 1000?", problem=reply["problem"])
-
-Every reply is a dict with the same keys:
-    status       "ok" | "infeasible" | "needs_input" | "error"
-    message      text to show the user (explanation, or a question when input is missing)
-    problem      the solver problem (keep it and pass it back for what-if questions)
-    result       solver result for the new situation (None if needs_input)
-    old          solver result before a what-if change (only for what-ifs)
-    explanation  {"text", "source": "model"|"template", "segments", "problems", "attempts"}
-                 segments = [{"text", "label": "certain"|"estimate"|None, "reason"}] for the confidence display
-    extraction   {"ok", "data", "raw", "problems", "attempts"}  what the model read from the message
-
-Design rule: the language model reads the message and explains the result. It never calculates.
-The CSP solver produces every number, and any explanation that contains a number the solver did
-not produce (or has no confidence tags) is thrown away and replaced by a plain template.
-"""
 from solver import normalise, solve
 
 from . import payloads, templates
@@ -39,9 +17,10 @@ RETRY_NOTE = ("That was not valid. Reply with ONLY a JSON object with exactly th
 
 
 class Pipeline:
-    def __init__(self, chat, method="forward", use_optimiser=True, extract_variant="trained",
-                 extract_retries=1, explain_retries=1):
+    def __init__(self, chat, extract_chat=None, method="forward", use_optimiser=True,
+                 extract_variant="trained", extract_retries=1, explain_retries=1):
         self.chat = chat
+        self.extract_chat = extract_chat or chat
         self.method = method
         self.use_optimiser = use_optimiser and optimise is not None
         self.extract_variant = extract_variant
@@ -53,16 +32,19 @@ class Pipeline:
         """Ask the model to turn a message into the agreed JSON. Retries once on bad output."""
         messages = extract_messages(text, self.extract_variant)
         raw, problems = "", ["model not called"]
+        chat_fn = getattr(self, "extract_chat", self.chat)
         for attempt in range(1, self.extract_retries + 2):
             try:
-                raw = self.chat(messages)
+                raw = chat_fn(messages)
             except Exception as e:  # Ollama down, timeout, ...
-                return {"ok": False, "data": None, "raw": "", "problems": [f"model unavailable: {e}"],
-                        "attempts": attempt}
+                return {"ok": False, "data": None, "raw": "",
+                        "problems": [f"model unavailable: {e}"], "attempts": attempt}
+            print("=== RAW EXTRACT ===", repr(raw))   # debug — remove later
             obj, error = parse_json_reply(raw)
             problems = [error] if error else check_extraction(obj)
             if not problems:
-                return {"ok": True, "data": obj, "raw": raw, "problems": [], "attempts": attempt}
+                return {"ok": True, "data": obj, "raw": raw,
+                        "problems": [], "attempts": attempt}
             messages = messages + [{"role": "assistant", "content": raw},
                                    {"role": "user", "content": RETRY_NOTE}]
         return {"ok": False, "data": None, "raw": raw, "problems": problems,

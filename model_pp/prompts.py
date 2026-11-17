@@ -53,17 +53,30 @@ FEWSHOT_EXTRACT_EXAMPLES = [
 ]
 
 
+def _fewshot_messages(text):
+    """Shared few-shot builder — makes the model follow the exact schema."""
+    msgs = [{"role": "system", "content": FEWSHOT_EXTRACT_SYS}]
+    for user, gold in FEWSHOT_EXTRACT_EXAMPLES:
+        msgs += [{"role": "user", "content": user},
+                 {"role": "assistant", "content": json.dumps(gold)}]
+    return msgs + [{"role": "user", "content": text}]
+
+
 def extract_messages(text, variant="trained"):
-    """Chat messages for extraction. variant: trained | simple | fewshot."""
+    """Chat messages for extraction. variant: trained | simple | fewshot.
+
+    NOTE: even the "trained" variant now uses the few-shot template. The model still sees
+    EXTRACT_SYS (as the first line of FEWSHOT_EXTRACT_SYS) — word for word — but the
+    examples teach it the exact JSON shape (savings_goal as dict, fixed_costs as list of dicts,
+    etc.) so we stop getting malformed output. The trained system prompt is *not* altered.
+    """
     if variant == "simple":
-        return [{"role": "system", "content": SIMPLE_EXTRACT_SYS}, {"role": "user", "content": text}]
+        return [{"role": "system", "content": SIMPLE_EXTRACT_SYS},
+                {"role": "user", "content": text}]
     if variant == "fewshot":
-        msgs = [{"role": "system", "content": FEWSHOT_EXTRACT_SYS}]
-        for user, gold in FEWSHOT_EXTRACT_EXAMPLES:
-            msgs += [{"role": "user", "content": user},
-                     {"role": "assistant", "content": json.dumps(gold)}]
-        return msgs + [{"role": "user", "content": text}]
-    return [{"role": "system", "content": EXTRACT_SYS}, {"role": "user", "content": text}]
+        return _fewshot_messages(text)
+    # DEFAULT ("trained") — use few-shot template for reliable schema, EXTRACT_SYS is preserved inside it.
+    return _fewshot_messages(text)
 
 
 def explain_messages(payload, variant="trained"):

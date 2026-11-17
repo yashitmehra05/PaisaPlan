@@ -1,22 +1,23 @@
 """Talk to a local Ollama server (no extra packages needed).
 
-    chat = make_chat("paisaplan")          # the fine-tuned model
-    chat = make_chat("llama3.2:3b")        # the untouched base model (for the baseline)
-    reply_text = chat([{"role": "system", "content": "..."}, {"role": "user", "content": "..."}])
-
-Ollama must be running (open the Ollama app, or run `ollama serve`).
+    chat = make_chat("paisaplan")                    # prose (explanations)
+    chat = make_chat("paisaplan", force_json=True)   # JSON (extraction)
 """
 import json
 import urllib.error
 import urllib.request
 
 
-def make_chat(model="paisaplan", host="http://localhost:11434", temperature=0.0, timeout=180):
+def make_chat(model="paisaplan", host="http://localhost:11434", temperature=0.0,
+              timeout=180, force_json=False):
     url = host.rstrip("/") + "/api/chat"
 
     def chat(messages):
-        body = json.dumps({"model": model, "messages": messages, "stream": False,
-                           "options": {"temperature": temperature}}).encode("utf-8")
+        payload = {"model": model, "messages": messages, "stream": False,
+                   "options": {"temperature": temperature}}
+        if force_json:
+            payload["format"] = "json"
+        body = json.dumps(payload).encode("utf-8")
         request = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
         try:
             with urllib.request.urlopen(request, timeout=timeout) as response:

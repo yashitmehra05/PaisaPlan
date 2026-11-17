@@ -75,5 +75,35 @@ CUSTOM_CSS = """
     background-color: #fee2e2;
     color: #991b1b;
 }
+
+/* --- FIX FOR SELECTBOX CURSOR & RED OUTLINE --- */
+
+/* 1. Hide the text cursor everywhere inside dropdowns */
+div[data-baseweb="select"] input,
+div[data-baseweb="select"] * {
+    caret-color: transparent !important;
+    cursor: pointer !important;
+}
+
+/* 2. Kill the red focus border globally on selectboxes and their wrappers */
+div[data-baseweb="select"] > div,
+div[data-baseweb="select"] > div:focus,
+div[data-baseweb="select"] > div:focus-within,
+div[data-baseweb="select"] > div:hover {
+    border-color: rgba(255, 255, 255, 0.2) !important; /* Default dark gray */
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* 3. Fix for Streamlit's newest baseweb wrapper structure */
+.stSelectbox div[data-baseweb="select"] > div {
+    background-color: transparent !important;
+}
+
+/* 4. Remove the red border on general inputs in the sidebar */
+section[data-testid="stSidebar"] input {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: none !important;
+}
 </style>
 """

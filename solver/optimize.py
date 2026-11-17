@@ -156,12 +156,24 @@ def optimise(problem, method="forward", weights=None, restarts=5, seed=0):
     and stats["moves"] (number of improving moves taken).
     If the problem is impossible the solver's result is returned unchanged
     with score None (look at result["unmet"]).
+
+    NOTE: if the CSP solver itself raises (e.g. a bad rule or an impossible
+    bound), the exception is caught and re-raised with a clear message so the
+    pipeline can turn it into a friendly "needs_input" reply instead of a 500.
     """
     t0 = time.perf_counter()
-    base = solve(problem, method)
+
+    # 1) Run the CSP solver. If it blows up, surface a clear error instead of
+    #    letting the pipeline crash with an opaque traceback.
+    try:
+        base = solve(problem, method)
+    except Exception as exc:  # noqa: BLE001 — deliberate: convert to ValueError
+        raise ValueError(f"CSP solver failed: {type(exc).__name__}: {exc}") from exc
+
     if base["status"] != "ok":
         return {**base, "score": None, "start_score": None, "improved": False}
 
+    # 2) Local search from the solver's first valid budget.
     rules = active_rules(problem)
     capacity = flex_capacity(problem)
     order = ordered_variables(problem)
@@ -169,13 +181,19 @@ def optimise(problem, method="forward", weights=None, restarts=5, seed=0):
     start_score = score(problem, start, weights)
 
     rng = random.Random(seed)
-    best, best_score, total_moves = _climb(problem, start, capacity, rules, weights)
-    for _ in range(restarts):
-        begin = _perturb(problem, start, capacity, rules, rng)
-        cand, cand_score, moves = _climb(problem, begin, capacity, rules, weights)
-        total_moves += moves
-        if cand_score > best_score + 1e-12:
-            best, best_score = cand, cand_score
+    try:
+        best, best_score, total_moves = _climb(problem, start, capacity, rules, weights)
+        for _ in range(restarts):
+            begin = _perturb(problem, start, capacity, rules, rng)
+            cand, cand_score, moves = _climb(problem, begin, capacity, rules, weights)
+            total_moves += moves
+            if cand_score > best_score + 1e-12:
+                best, best_score = cand, cand_score
+    except Exception as exc:  # noqa: BLE001 — local search is best-effort
+        # If local search ever fails, fall back to the CSP solver's budget
+        # rather than crashing the whole pipeline.
+        best, best_score, total_moves = start, start_score, 0
+        # (We swallow the error on purpose — the CSP result is still valid.)
 
     allocation = dict(problem["fixed_costs"])
     allocation.update(best)
